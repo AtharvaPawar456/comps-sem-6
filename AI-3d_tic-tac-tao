@@ -1,0 +1,126 @@
+from ursina import *
+import numpy as np
+
+app = Ursina()
+EditorCamera()
+window.title = 'Tic Tac Tao'                # The window title
+window.borderless = False               # Show a border
+window.fullscreen = False               # Do not go Fullscreen
+# Do not show the in-game red X that loses the window
+window.exit_button.visible = False
+# Show the FPS (Frames per second) counter
+window.fps_counter.enabled = True
+
+
+board_entities = []
+
+turn = 0
+
+colors = {
+    'white': color.rgba(255, 255, 255, 255),
+    'red': color.rgba(255, 0, 0, 255),
+    'blue': color.rgba(0, 0, 255, 255),
+}
+
+
+x = 0
+y = 0
+z = 0
+
+
+class Cube(Entity):
+
+    def __init__(self, origin_x=0, origin_y=0, origin_z=0):
+        super().__init__(
+            model='cube',
+            texture='white_cube',
+            color=colors['white'],
+            collider='box',
+            origin_x=origin_x,
+            origin_y=origin_y,
+            origin_z=origin_z,
+        )
+
+        self.marked = 'none'
+
+    def input(self, key):
+        global x, y, z
+        c = .2
+        if self.hovered:
+            print(key)
+            if key == 'left mouse down':
+                mark_cube(self)
+                # destroy(self)
+
+        if key == 'right arrow':
+            x -= c
+            # z += c
+
+        if key == 'left arrow':
+            x += c
+            # z += c
+
+        if key == 'up arrow':
+            y -= c
+
+        if key == 'down arrow':
+            y += c
+
+        if key == 'f':
+            z += c
+
+        if key == 'b':
+            z -= c
+
+            # camera.position = (x, y, 0)
+        camera.rotation = (y, x, z)
+
+
+def mark_cube(e):
+    if e.marked != 'none':
+        return
+
+    global turn
+    turn += 1
+
+    if turn % 2 == 0:
+        e.marked = 'red'
+        e.color = colors['red']
+        e.animate('rotation_y', e.rotation_y+360,
+                  duration=2, curve=curve.in_out_expo)
+    else:
+        e.marked = 'blue'
+        e.color = colors['blue']
+        e.animate('rotation_y', e.rotation_y+360,
+                  duration=2, curve=curve.in_out_expo)
+
+
+def create_assets():
+    for i in np.linspace(-2, 2, 3):
+        board = []
+        for j in np.linspace(-2, 2, 3):
+            for k in np.linspace(-1, 2, 3):
+                e = Cube(
+                    origin_y=i,
+                    origin_x=j,
+                    origin_z=k,
+                )
+                board.append(e)
+        board_entities.append(board)
+    text1 = Text(text="Red", color=color.green, position=(-4, 0, 0))
+    text2 = Text(text="Blue", color=color.green, position=(4, 0, 0))
+
+    # print("board", board)
+    # print("board-2", board_entities)
+
+
+EditorCamera()
+
+
+def main():
+    create_assets()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()
